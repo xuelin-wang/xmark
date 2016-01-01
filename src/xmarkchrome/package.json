@@ -1,0 +1,55 @@
+{
+  "name": "xmark",
+  "author": {
+    "name": "Xuelin Wang",
+    "email": "xuelin.wang@gmail.com"
+  },
+  "version": "0.0.1",
+  "description": "xmark bookmark manager",
+  "keywords": [
+    "bookmark",
+    "manager",
+    "google",
+    "drive",
+    "cloud"
+  ],
+  "homepage": "xuelinhome.com",
+  "license": "BSD-3-Clause",
+  "main": "js/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xuelinwang"
+  },
+  "dependencies": {
+    "babel-loader": "^6.2.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13",
+    "babelify": "^7.2.0",
+    "immutable": "^3.7.6",
+    "react": "^0.14.3",
+    "react-dom": "^0.14.3",
+    "react-redux": "^4.0.5",
+    "react-treeview": "^0.4.2",
+    "redux": "^3.0.5",
+    "redux-logger": "^2.3.1",
+    "redux-thunk": "^1.0.3",
+    "webpack": "^1.12.9"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "stage": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "css-loader": "^0.23.1",
+    "style-loader": "^0.13.0"
+  }
+}

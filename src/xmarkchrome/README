@@ -1,0 +1,8 @@
+npm install --save react react-dom babel-preset-react
+browserify -t [babelify --presets [react ] ] main.js -o bundle.js
+
+
+#################### react babel workflow
+https://www.codementor.io/reactjs/tutorial/beginner-guide-setup-reactjs-environment-npm-babel-6-webpack
+
+npm install css-loader style-loader --save-dev
