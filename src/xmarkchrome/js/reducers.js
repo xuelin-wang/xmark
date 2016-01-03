@@ -42,7 +42,7 @@ function auth(state = initialState, action) {
     case ADD_BOOKMARK:
       var bookmarksBlob = state.bookmarksBlob;
       var bookmarks = parseBookmarks(bookmarksBlob);
-      var newBookmark = {"name": action.name, "url": action.url};
+      var newBookmark = {"name": action.name, "url": action.url, "path": action.path};
       bookmarks.push(newBookmark);
       updateBookmarks(state.accessToken, state.bookmarksFileId, bookmarks, null);
       return {
@@ -67,6 +67,7 @@ function auth(state = initialState, action) {
         if (bookmark.url == oldUrl) {
           bookmark.url = action.url;
           bookmark.name = action.name;
+          bookmark.path = action.path;
         }
       });
       updateBookmarks(state.accessToken, state.bookmarksFileId, bookmarks, null);
@@ -103,7 +104,8 @@ function auth(state = initialState, action) {
         
       return {
         ...state,
-        collapsedPaths: newCollapsedPaths
+        collapsedPaths: newCollapsedPaths,
+        clickedFolderPath: path
       }
     default:
       return state

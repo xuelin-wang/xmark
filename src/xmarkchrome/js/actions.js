@@ -47,11 +47,25 @@ export function receiveBookmarksBlob(xmarksFileId, bookmarksBlob) {
   };
 }
 
-export function addBookmark(url, title) {
+function toPath(pathStr) {
+  var names = pathStr.split('/')
+  var nonEmptyNames = [];
+  for (var index = 0; index < names.length; index++) {
+    var name = names[index];
+    if (name != null && name.trim().length > 0) {
+      nonEmptyNames.push(name.trim());
+    }
+  }
+  return nonEmptyNames;
+}
+
+export function addBookmark(url, title, pathStr) {
+  var path = toPath(pathStr);
   return {
     type: ADD_BOOKMARK,
     url: url,
-    name: title
+    name: title,
+    path: path
   };
 }
 
@@ -114,13 +128,15 @@ export function cancelEditBookmark(url) {
   };
 }
 
-export function completeEditBookmark(oldUrl, oldName, url, name) {
+export function completeEditBookmark(oldUrl, oldName, url, name, pathStr) {
+  var path = toPath(pathStr);
   return {
     type: COMPLETE_EDIT_BOOKMARK,
     oldUrl: oldUrl,
     oldName: oldName,
     url: url,
-    name: name
+    name: name,
+    path: path
   };
 }
 

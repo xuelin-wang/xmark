@@ -45,7 +45,6 @@ body {
   overflow: hidden;
   background: no-repeat center center,
               -webkit-linear-gradient(bottom, #eee, rgba(255,255,255,0));
-  background-size: 270px 215px, 100%;
   font-family: 'Droid Sans', sans-serif;
 }
 
