@@ -22598,15 +22598,9 @@
 	var XmarkNode = _react2.default.createClass({
 	  displayName: 'XmarkNode',
 	
-	  _urlSpan: null,
 	  _nameInput: null,
 	  _urlInput: null,
 	  _pathInput: null,
-	
-	  _showHideUrlSpan: function _showHideUrlSpan(show) {
-	    if (this._urlSpan == null) return;
-	    this._urlSpan.style.visibility = show ? 'visible' : 'hidden';
-	  },
 	
 	  render: function render() {
 	    var nodeData = this.props.nodeData;
@@ -22614,12 +22608,6 @@
 	    var name = (0, _util.getNodeName)(nodeData);
 	    var url = nodeData.url;
 	    var iconLink;
-	    var handleShowUrl = function handleShowUrl(e) {
-	      xmarkNodeThis._showHideUrlSpan(true);
-	    };
-	    var handleHideUrl = function handleHideUrl(e) {
-	      xmarkNodeThis._showHideUrlSpan(false);
-	    };
 	    var indentLevel = nodeData.path.length;
 	    var leftPx = indentLevel * 32;
 	    var divStyle = {
@@ -22627,88 +22615,39 @@
 	      display: "flex",
 	      flexWrap: "wrap"
 	    };
-	    if (nodeData.iconLink) iconLink = _react2.default.createElement('img', { height: '32', width: '32', src: nodeData.iconLink, onMouseEnter: handleShowUrl });else iconLink = _react2.default.createElement('img', { height: '32', width: '32', src: '/image/blank32.png' });
+	    var newInputsDivStyle = {
+	      marginLeft: leftPx
+	    };
+	    if (nodeData.iconLink) iconLink = _react2.default.createElement('img', { height: '32', width: '32', src: nodeData.iconLink });else iconLink = _react2.default.createElement('img', { height: '32', width: '32', src: '/image/blank32.png' });
 	    var inEditing = this.props.inEditing;
 	    var item1Style = { order: 1 };
 	    var item2Style = { order: 2 };
 	    if (!inEditing) return _react2.default.createElement(
 	      'div',
-	      { style: divStyle, onMouseEnter: handleShowUrl, onMouseOut: handleHideUrl },
+	      null,
 	      _react2.default.createElement(
 	        'div',
-	        { style: item1Style },
-	        iconLink,
-	        _react2.default.createElement(
-	          'a',
-	          { href: url, onMouseEnter: handleShowUrl },
-	          name
-	        ),
-	        _react2.default.createElement(
-	          'span',
-	          { ref: function ref(urlSpan) {
-	              xmarkNodeThis._urlSpan = urlSpan;xmarkNodeThis._showHideUrlSpan(false);
-	            }, onMouseEnter: handleShowUrl },
-	          url
-	        )
-	      ),
-	      _react2.default.createElement(
-	        'div',
-	        { style: item2Style },
-	        _react2.default.createElement(
-	          'button',
-	          { onClick: function onClick(e) {
-	              return xmarkNodeThis.props.beginEdit(url);
-	            } },
-	          'Edit'
-	        ),
-	        _react2.default.createElement(
-	          'button',
-	          { onClick: function onClick(e) {
-	              return xmarkNodeThis.props.deleteMe(url);
-	            } },
-	          'X'
-	        )
-	      )
-	    );else {
-	      var path = nodeData.path;
-	      if (!path) path = [];
-	      var pathStr = path.join('/');
-	      return _react2.default.createElement(
-	        'div',
-	        { style: divStyle, className: 'bookmarkRow', onMouseEnter: handleShowUrl, onMouseOut: handleHideUrl },
+	        { style: divStyle },
 	        _react2.default.createElement(
 	          'div',
-	          null,
+	          { style: item1Style },
 	          iconLink,
-	          'title: ',
-	          _react2.default.createElement('input', { type: 'text', ref: function ref(nameInput) {
-	              return xmarkNodeThis._nameInput = nameInput;
-	            }, defaultValue: name }),
-	          'url: ',
-	          _react2.default.createElement('input', { type: 'text', ref: function ref(urlInput) {
-	              return xmarkNodeThis._urlInput = urlInput;
-	            }, defaultValue: url }),
-	          'folder: ',
-	          _react2.default.createElement('input', { type: 'text', ref: function ref(pathInput) {
-	              return xmarkNodeThis._pathInput = pathInput;
-	            }, defaultValue: pathStr })
+	          _react2.default.createElement(
+	            'a',
+	            { href: url, title: url },
+	            name
+	          )
 	        ),
 	        _react2.default.createElement(
 	          'div',
-	          null,
+	          { style: item2Style },
+	          _react2.default.createElement('img', { height: '32', width: '32', src: '/image/blank32.png' }),
 	          _react2.default.createElement(
 	            'button',
 	            { onClick: function onClick(e) {
-	                return xmarkNodeThis.props.doneEdit(xmarkNodeThis._urlInput.value, xmarkNodeThis._nameInput.value, xmarkNodeThis._pathInput.value);
+	                return xmarkNodeThis.props.beginEdit(url);
 	              } },
-	            'Save'
-	          ),
-	          _react2.default.createElement(
-	            'button',
-	            { onClick: function onClick(e) {
-	                return xmarkNodeThis.props.cancelEdit();
-	              } },
-	            'Cancel'
+	            'Edit'
 	          ),
 	          _react2.default.createElement(
 	            'button',
@@ -22718,6 +22657,65 @@
 	            'X'
 	          )
 	        )
+	      )
+	    );else {
+	      var path = nodeData.path;
+	      if (!path) path = [];
+	      var pathStr = path.join('/');
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	          'div',
+	          { style: divStyle, className: 'bookmarkRow' },
+	          _react2.default.createElement(
+	            'div',
+	            null,
+	            iconLink,
+	            'title: ',
+	            _react2.default.createElement('input', { type: 'text', ref: function ref(nameInput) {
+	                return xmarkNodeThis._nameInput = nameInput;
+	              }, defaultValue: name })
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            null,
+	            _react2.default.createElement('img', { height: '32', width: '32', src: '/image/blank32.png' }),
+	            _react2.default.createElement(
+	              'button',
+	              { onClick: function onClick(e) {
+	                  return xmarkNodeThis.props.doneEdit(xmarkNodeThis._urlInput.value, xmarkNodeThis._nameInput.value, xmarkNodeThis._pathInput.value);
+	                } },
+	              'Save'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { onClick: function onClick(e) {
+	                  return xmarkNodeThis.props.cancelEdit();
+	                } },
+	              'Cancel'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { onClick: function onClick(e) {
+	                  return xmarkNodeThis.props.deleteMe(url);
+	                } },
+	              'X'
+	            )
+	          )
+	        ),
+	        _react2.default.createElement(
+	          'div',
+	          { style: newInputsDivStyle },
+	          'url: ',
+	          _react2.default.createElement('input', { type: 'text', ref: function ref(urlInput) {
+	              return xmarkNodeThis._urlInput = urlInput;
+	            }, defaultValue: url }),
+	          'folder: ',
+	          _react2.default.createElement('input', { type: 'text', ref: function ref(pathInput) {
+	              return xmarkNodeThis._pathInput = pathInput;
+	            }, defaultValue: pathStr })
+	        )
 	      );
 	    }
 	  }
@@ -22725,6 +22723,10 @@
 	
 	var XmarkApp = _react2.default.createClass({
 	  displayName: 'XmarkApp',
+	
+	  getInitialState: function getInitialState() {
+	    return {};
+	  },
 	
 	  _authorized: function _authorized() {
 	    return this.props.accessToken != null;
@@ -22836,14 +22838,18 @@
 	        return _react2.default.createElement(XmarkNode, { key: itemKey, nodeData: node, inEditing: inEditing, beginEdit: beginEdit, doneEdit: doneEdit, cancelEdit: cancelEdit, deleteMe: deleteMe });
 	      } else {
 	        var onClickFolder = function onClickFolder() {
+	          thisXmarkApp.setState({ addPathStr: null });
 	          dispatch((0, _actions.toggleCollapse)((0, _immutable.fromJS)(node.path)));
 	        };
 	        return _react2.default.createElement(XmarkFolderNode, { key: itemKey, nodeData: node, onClickFolder: onClickFolder });
 	      }
 	    });
-	    var clickedFolderPath = this.props.clickedFolderPath;
-	    if (!clickedFolderPath) clickedFolderPath = [];
-	    var addPathStr = clickedFolderPath.join('/');
+	    var addPathStr = this.state.addPathStr;
+	    if (!addPathStr) {
+	      var clickedFolderPath = this.props.clickedFolderPath;
+	      if (!clickedFolderPath) clickedFolderPath = [];
+	      addPathStr = clickedFolderPath.join('/');
+	    }
 	    return _react2.default.createElement(
 	      'div',
 	      null,
@@ -22860,7 +22866,9 @@
 	      'to path (folder names separated by \'/\'): ',
 	      _react2.default.createElement('input', { type: 'text', ref: function ref(addPathInput) {
 	          return _this._addPathInput = addPathInput;
-	        }, defaultValue: addPathStr }),
+	        }, onChange: function onChange(e) {
+	          return thisXmarkApp.setState({ addPathStr: e.target.value });
+	        }, value: addPathStr }),
 	      _react2.default.createElement(
 	        'button',
 	        { className: 'btn', onClick: thisXmarkApp._close },
