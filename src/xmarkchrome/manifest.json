@@ -2,8 +2,8 @@
   "manifest_version": 2,
 
   "name": "xmark chrome bookmarks manager",
-  "description": "This extension manages chrome bookmarks. Note the managed bookmarks are independent of the native chrome bookmarks. The bookmarks are stored in google drive. The file is in root folder with name __xmarks__",
-  "version": "4",
+  "description": "Manages chrome bookmarks which are independent of the native bookmarks. Bookmars are stored in google drive file __xmarks__",
+  "version": "5",
 
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArzmfFGwf91l8EqWKP+XEA80ynv5EvH8pAShRP3+JuMc/4Ji8G/O3wXs2LKUOgDMuJa8QsDTSLqtRKZlmCT06BGn119TXPxracYCYFHOS2G1MNyPux0qyeb6Ce4GVCFCtXsRMrhLctFbYEv1mXXjt2e8V3IeFt3b4g+pWJhOA3b6h9xvbUnmVke8xUo3Kug5vnVomDx8xmam0ThIa9+2wpWhqYB6kjhSENWcH1+vX/sqKJ9VQ6kzejYRyEBlvkObAKnwuC7gL05IFyqUTz7TTkMixK49ksKiD7hZZ/HWGYcHmziBgKgoZq1pojm8xYUsDkq875vCgFFA/qr8C8/DnCwIDAQAB",
   "browser_action": {

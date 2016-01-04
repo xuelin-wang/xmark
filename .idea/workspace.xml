@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="169e104c-e7bc-4902-af7a-49df9e94ae09" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/xmarkchrome/js/bundle.js" afterPath="$PROJECT_DIR$/src/xmarkchrome/js/bundle.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/xmarkchrome/js/bundle.js.map" afterPath="$PROJECT_DIR$/src/xmarkchrome/js/bundle.js.map" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/xmarkchrome/js/components/XmarkApp.react.js" afterPath="$PROJECT_DIR$/src/xmarkchrome/js/components/XmarkApp.react.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/xmarkchrome.zip" afterPath="$PROJECT_DIR$/src/xmarkchrome.zip" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/xmarkchrome/manifest.json" afterPath="$PROJECT_DIR$/src/xmarkchrome/manifest.json" />
     </list>
     <ignored path="xmark.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -80,7 +79,7 @@
         <entry file="file://$PROJECT_DIR$/src/xmarkchrome/js/gDocs.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="79" column="27" selection-start-line="79" selection-start-column="27" selection-end-line="79" selection-end-column="27" />
+              <caret line="84" column="14" selection-start-line="84" selection-start-column="14" selection-end-line="84" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -589,7 +588,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="368" y="52" width="1232" height="848" extended-state="4" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
@@ -843,7 +842,7 @@
     <entry file="file://$PROJECT_DIR$/src/xmarkchrome/js/gDocs.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="79" column="27" selection-start-line="79" selection-start-column="27" selection-end-line="79" selection-end-column="27" />
+          <caret line="84" column="14" selection-start-line="84" selection-start-column="14" selection-end-line="84" selection-end-column="14" />
           <folding />
         </state>
       </provider>

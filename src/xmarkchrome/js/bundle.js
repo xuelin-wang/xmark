@@ -22348,7 +22348,9 @@
 	  }
 	  if (isLeaf1 && isLeaf2) {
 	    if (lenCheck != 0) return -lenCheck;
-	    return compareStr(node1.url, node2.url);
+	    var name1 = getNodeName(node1);
+	    var name2 = getNodeName(node2);
+	    return compareStr(name1, name2);
 	  } else {
 	    return isLeaf1 ? 1 : -1;
 	  }
