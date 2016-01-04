@@ -129,6 +129,7 @@ var XmarkApp = React.createClass({
   },
 
   _addPathInput: null,
+  _addUrlInput: null,
 
   _addBookmark: function(){
     if (!this._authorized())
@@ -137,25 +138,20 @@ var XmarkApp = React.createClass({
     var xmarkAppThis = this;
     var dispatch = this.props.dispatch;
     var pathStr = this._addPathInput.value;
-    chrome.tabs.query({"active": true, "lastFocusedWindow": true}, function (tabs) {
-      if (tabs.length == 0 || !(tabs[0]))
-        return;
-      var activeTab = tabs[0];
-      var newUrl = activeTab.url;
-      var title = activeTab.title;
-      var bookmarks = parseBookmarks(xmarkAppThis.props.bookmarksBlob);
-      var exists = false;
-      for (var index = 0; index < bookmarks.length; index++) {
-        var bookmark = bookmarks[index];
-        if (bookmark.url == newUrl) {
-          exists = true;
-          break;
-        }
+    var addUrl = this._addUrlInput.value;
+    var addTitle = this._addTitleInput.value;
+    var bookmarks = parseBookmarks(xmarkAppThis.props.bookmarksBlob);
+    var exists = false;
+    for (var index = 0; index < bookmarks.length; index++) {
+      var bookmark = bookmarks[index];
+      if (bookmark.url == newUrl) {
+        exists = true;
+        break;
       }
-      if (exists)
-        return;
-      dispatch(addBookmark(newUrl, title, pathStr));
-    });
+    }
+    if (exists)
+      return;
+    dispatch(addBookmark(newUrl, title, pathStr));
   },
 
   _refresh: function(){
@@ -223,12 +219,33 @@ var XmarkApp = React.createClass({
         clickedFolderPath = [];
       addPathStr = clickedFolderPath.join('/');
     }
+    var addUrl = this.state.addUrl;
+    if (!addUrl) {
+      addUrl = this.props.activeTabUrl;
+      if (!addUrl)
+        addUrl = '';
+    }
+    var addTitle = this.state.addTitle;
+    if (!addTitle) {
+      addTitle = this.props.activeTabTitle;
+      if (!addTitle)
+        addTitle = '';
+    }
+    var topDivStyle = {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "baseline"
+    };
     return (
       <div>
-        <button className="btn" onClick={thisXmarkApp._toggleAuth}>{authorizeLabel}</button>
-        <button className="btn" onClick={thisXmarkApp._addBookmark}>Add Bookmark</button>
-        to path (folder names separated by '/'): <input type="text" ref={addPathInput => this._addPathInput = addPathInput} onChange={e => thisXmarkApp.setState({addPathStr: e.target.value})} value={addPathStr} ></input>
-        <button className="btn" onClick={thisXmarkApp._close}>X</button>
+        <div style={topDivStyle} >
+          <button className="btn" onClick={thisXmarkApp._toggleAuth}>{authorizeLabel}</button>
+          <button className="btn" onClick={thisXmarkApp._addBookmark}>Add Bookmark</button> 
+          url: <input type="text" ref={addUrlInput => this._addUrlInput = addUrlInput} onChange={e => thisXmarkApp.setState({activeTabUrl: e.target.value})} value={addUrl}></input>
+          title: <input type="text" ref={addTitleInput => this._addTitleInput = addTitleInput} onChange={e => thisXmarkApp.setState({activeTabTitle: e.target.value})} value={addTitle}></input>
+          to path (delimited by '/'): <input type="text" ref={addPathInput => this._addPathInput = addPathInput} onChange={e => thisXmarkApp.setState({addPathStr: e.target.value})} value={addPathStr} ></input>
+          <button className="btn" onClick={thisXmarkApp._close}>X</button>
+        </div>
         <div>
             {bookmarksList}
         </div>
@@ -244,7 +261,9 @@ function select(state) {
     bookmarksBlob: state.auth.bookmarksBlob,
     editingUrl: state.auth.editingUrl,
     collapsedPaths: state.auth.collapsedPaths,
-    clickedFolderPath: state.auth.clickedFolderPath
+    clickedFolderPath: state.auth.clickedFolderPath,
+    activeTabUrl: state.auth.activeTabUrl,
+    activeTabTitle: state.auth.activeTabTitle
   }
 }
 

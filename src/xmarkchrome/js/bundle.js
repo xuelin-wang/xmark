@@ -110,10 +110,20 @@
 	    initialState.auth.accessToken = token;
 	    if (token) {
 	      var bookmarksCallback = function bookmarksCallback(xmarksFileId, responseText) {
-	        console.log("init state: " + responseText);
 	        initialState.auth.bookmarksFileId = xmarksFileId;
 	        initialState.auth.bookmarksBlob = responseText;
-	        gotInitialState();
+	        chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs) {
+	          if (tabs.length != 0 && tabs[0]) {
+	            var activeTab = tabs[0];
+	            var newUrl = activeTab.url;
+	            var title = activeTab.title;
+	            initialState.auth.activeTabUrl = newUrl;
+	            initialState.auth.activeTabTitle = title;
+	          }
+	          console.log("init state: ");
+	          console.log(initialState.auth);
+	          gotInitialState();
+	        });
 	      };
 	      (0, _gDocs.fetchBookmarks)(token, bookmarksCallback);
 	    } else {
@@ -22758,6 +22768,7 @@
 	  },
 	
 	  _addPathInput: null,
+	  _addUrlInput: null,
 	
 	  _addBookmark: function _addBookmark() {
 	    if (!this._authorized()) return;
@@ -22765,23 +22776,19 @@
 	    var xmarkAppThis = this;
 	    var dispatch = this.props.dispatch;
 	    var pathStr = this._addPathInput.value;
-	    chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs) {
-	      if (tabs.length == 0 || !tabs[0]) return;
-	      var activeTab = tabs[0];
-	      var newUrl = activeTab.url;
-	      var title = activeTab.title;
-	      var bookmarks = (0, _util.parseBookmarks)(xmarkAppThis.props.bookmarksBlob);
-	      var exists = false;
-	      for (var index = 0; index < bookmarks.length; index++) {
-	        var bookmark = bookmarks[index];
-	        if (bookmark.url == newUrl) {
-	          exists = true;
-	          break;
-	        }
+	    var addUrl = this._addUrlInput.value;
+	    var addTitle = this._addTitleInput.value;
+	    var bookmarks = (0, _util.parseBookmarks)(xmarkAppThis.props.bookmarksBlob);
+	    var exists = false;
+	    for (var index = 0; index < bookmarks.length; index++) {
+	      var bookmark = bookmarks[index];
+	      if (bookmark.url == newUrl) {
+	        exists = true;
+	        break;
 	      }
-	      if (exists) return;
-	      dispatch((0, _actions.addBookmark)(newUrl, title, pathStr));
-	    });
+	    }
+	    if (exists) return;
+	    dispatch((0, _actions.addBookmark)(newUrl, title, pathStr));
 	  },
 	
 	  _refresh: function _refresh() {},
@@ -22850,29 +22857,60 @@
 	      if (!clickedFolderPath) clickedFolderPath = [];
 	      addPathStr = clickedFolderPath.join('/');
 	    }
+	    var addUrl = this.state.addUrl;
+	    if (!addUrl) {
+	      addUrl = this.props.activeTabUrl;
+	      if (!addUrl) addUrl = '';
+	    }
+	    var addTitle = this.state.addTitle;
+	    if (!addTitle) {
+	      addTitle = this.props.activeTabTitle;
+	      if (!addTitle) addTitle = '';
+	    }
+	    var topDivStyle = {
+	      display: "flex",
+	      flexWrap: "wrap",
+	      alignItems: "baseline"
+	    };
 	    return _react2.default.createElement(
 	      'div',
 	      null,
 	      _react2.default.createElement(
-	        'button',
-	        { className: 'btn', onClick: thisXmarkApp._toggleAuth },
-	        authorizeLabel
-	      ),
-	      _react2.default.createElement(
-	        'button',
-	        { className: 'btn', onClick: thisXmarkApp._addBookmark },
-	        'Add Bookmark'
-	      ),
-	      'to path (folder names separated by \'/\'): ',
-	      _react2.default.createElement('input', { type: 'text', ref: function ref(addPathInput) {
-	          return _this._addPathInput = addPathInput;
-	        }, onChange: function onChange(e) {
-	          return thisXmarkApp.setState({ addPathStr: e.target.value });
-	        }, value: addPathStr }),
-	      _react2.default.createElement(
-	        'button',
-	        { className: 'btn', onClick: thisXmarkApp._close },
-	        'X'
+	        'div',
+	        { style: topDivStyle },
+	        _react2.default.createElement(
+	          'button',
+	          { className: 'btn', onClick: thisXmarkApp._toggleAuth },
+	          authorizeLabel
+	        ),
+	        _react2.default.createElement(
+	          'button',
+	          { className: 'btn', onClick: thisXmarkApp._addBookmark },
+	          'Add Bookmark'
+	        ),
+	        'url: ',
+	        _react2.default.createElement('input', { type: 'text', ref: function ref(addUrlInput) {
+	            return _this._addUrlInput = addUrlInput;
+	          }, onChange: function onChange(e) {
+	            return thisXmarkApp.setState({ activeTabUrl: e.target.value });
+	          }, value: addUrl }),
+	        'title: ',
+	        _react2.default.createElement('input', { type: 'text', ref: function ref(addTitleInput) {
+	            return _this._addTitleInput = addTitleInput;
+	          }, onChange: function onChange(e) {
+	            return thisXmarkApp.setState({ activeTabTitle: e.target.value });
+	          }, value: addTitle }),
+	        'to path (delimited by \'/\'): ',
+	        _react2.default.createElement('input', { type: 'text', ref: function ref(addPathInput) {
+	            return _this._addPathInput = addPathInput;
+	          }, onChange: function onChange(e) {
+	            return thisXmarkApp.setState({ addPathStr: e.target.value });
+	          }, value: addPathStr }),
+	        _react2.default.createElement(
+	          'button',
+	          { className: 'btn', onClick: thisXmarkApp._close },
+	          'X'
+	        )
 	      ),
 	      _react2.default.createElement(
 	        'div',
@@ -22890,7 +22928,9 @@
 	    bookmarksBlob: state.auth.bookmarksBlob,
 	    editingUrl: state.auth.editingUrl,
 	    collapsedPaths: state.auth.collapsedPaths,
-	    clickedFolderPath: state.auth.clickedFolderPath
+	    clickedFolderPath: state.auth.clickedFolderPath,
+	    activeTabUrl: state.auth.activeTabUrl,
+	    activeTabTitle: state.auth.activeTabTitle
 	  };
 	}
 	

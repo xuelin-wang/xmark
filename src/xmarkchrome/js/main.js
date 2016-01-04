@@ -36,10 +36,20 @@ try {
     initialState.auth.accessToken = token;
     if (token) {
       var bookmarksCallback = function(xmarksFileId, responseText) {
-        console.log("init state: " + responseText);
         initialState.auth.bookmarksFileId = xmarksFileId;
         initialState.auth.bookmarksBlob = responseText;
-        gotInitialState();
+        chrome.tabs.query({"active": true, "lastFocusedWindow": true}, function (tabs) {
+         if (tabs.length != 0 && tabs[0]) {
+           var activeTab = tabs[0];
+           var newUrl = activeTab.url;
+           var title = activeTab.title;
+           initialState.auth.activeTabUrl = newUrl;
+           initialState.auth.activeTabTitle = title;
+         }
+         console.log("init state: ")
+         console.log(initialState.auth);
+         gotInitialState();
+    });
       };
       fetchBookmarks(token, bookmarksCallback);
     }
