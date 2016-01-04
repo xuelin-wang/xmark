@@ -5,7 +5,7 @@ export function times(n, iterator) {
 }
 
 export function parseBookmarks(bookmarksBlob) {
-  if (bookmarksBlob == null)
+  if (bookmarksBlob == null || bookmarksBlob.trim().length == 0)
     bookmarksBlob = '[]';
   return JSON.parse(bookmarksBlob);
 }

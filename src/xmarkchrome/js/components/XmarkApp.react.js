@@ -137,21 +137,21 @@ var XmarkApp = React.createClass({
 
     var xmarkAppThis = this;
     var dispatch = this.props.dispatch;
-    var pathStr = this._addPathInput.value;
+    var addPathStr = this._addPathInput.value;
     var addUrl = this._addUrlInput.value;
     var addTitle = this._addTitleInput.value;
     var bookmarks = parseBookmarks(xmarkAppThis.props.bookmarksBlob);
     var exists = false;
     for (var index = 0; index < bookmarks.length; index++) {
       var bookmark = bookmarks[index];
-      if (bookmark.url == newUrl) {
+      if (bookmark.url == addUrl) {
         exists = true;
         break;
       }
     }
     if (exists)
       return;
-    dispatch(addBookmark(newUrl, title, pathStr));
+    dispatch(addBookmark(addUrl, addTitle, addPathStr));
   },
 
   _refresh: function(){

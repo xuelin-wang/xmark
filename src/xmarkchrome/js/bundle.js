@@ -22303,7 +22303,7 @@
 	}
 	
 	function parseBookmarks(bookmarksBlob) {
-	  if (bookmarksBlob == null) bookmarksBlob = '[]';
+	  if (bookmarksBlob == null || bookmarksBlob.trim().length == 0) bookmarksBlob = '[]';
 	  return JSON.parse(bookmarksBlob);
 	}
 	
@@ -22536,15 +22536,20 @@
 	}
 	
 	function createGdriveFile(accessToken, mimeType, name, callback) {
-	  var apiUrl = "files?uploadType=media";
-	  var headers = { "Content-type": "text/plain" };
-	  var data = "name=" + encodeURIComponent(name) + "&mimeType=" + encodeURIComponent(mimeType);
+	  var apiUrl = "files";
+	  var headers = { "Content-type": "application/json; charset=UTF-8" };
+	  var dataJson = {
+	    "mimeType": mimeType,
+	    "name": name
+	  };
+	  var data = JSON.stringify(dataJson);
 	  var newCallback = function newCallback(respText) {
 	    var createResp = JSON.parse(respText);
 	    var newFileId = createResp.id;
-	    renameGdriveFile(accessToken, newFileId, name, callback);
+	    callback(respText, newFileId);
+	    //    renameGdriveFile(accessToken, newFileId, name, callback);
 	  };
-	  queryGdrive(accessToken, apiUrl, "POST", true, headers, null, newCallback);
+	  queryGdrive(accessToken, apiUrl, "POST", false, headers, data, callback);
 	}
 	
 	function createBookmarks(accessToken, createCallback) {
@@ -22775,20 +22780,20 @@
 	
 	    var xmarkAppThis = this;
 	    var dispatch = this.props.dispatch;
-	    var pathStr = this._addPathInput.value;
+	    var addPathStr = this._addPathInput.value;
 	    var addUrl = this._addUrlInput.value;
 	    var addTitle = this._addTitleInput.value;
 	    var bookmarks = (0, _util.parseBookmarks)(xmarkAppThis.props.bookmarksBlob);
 	    var exists = false;
 	    for (var index = 0; index < bookmarks.length; index++) {
 	      var bookmark = bookmarks[index];
-	      if (bookmark.url == newUrl) {
+	      if (bookmark.url == addUrl) {
 	        exists = true;
 	        break;
 	      }
 	    }
 	    if (exists) return;
-	    dispatch((0, _actions.addBookmark)(newUrl, title, pathStr));
+	    dispatch((0, _actions.addBookmark)(addUrl, addTitle, addPathStr));
 	  },
 	
 	  _refresh: function _refresh() {},

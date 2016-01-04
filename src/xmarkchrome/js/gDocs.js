@@ -130,15 +130,20 @@ export function updateBookmarks(accessToken, fileId, bookmarks, callback) {
 }
 
 function createGdriveFile(accessToken, mimeType, name, callback) {
-  var apiUrl = "files?uploadType=media";
-  var headers = {"Content-type": "text/plain"};
-  var data = "name=" + encodeURIComponent(name) + "&mimeType=" + encodeURIComponent(mimeType);
+  var apiUrl = "files";
+  var headers = {"Content-type": "application/json; charset=UTF-8"};
+  var dataJson = {
+    "mimeType": mimeType,
+    "name": name
+  };
+  var data = JSON.stringify(dataJson);
   var newCallback = function(respText) {
     var createResp = JSON.parse(respText);
     var newFileId = createResp.id;
-    renameGdriveFile(accessToken, newFileId, name, callback);
+    callback(respText, newFileId);
+//    renameGdriveFile(accessToken, newFileId, name, callback);
   };
-  queryGdrive(accessToken, apiUrl, "POST", true, headers, null, newCallback);
+  queryGdrive(accessToken, apiUrl, "POST", false, headers, data, callback);
 }
 
 function createBookmarks(accessToken, createCallback) {
