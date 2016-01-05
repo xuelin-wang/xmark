@@ -12,7 +12,7 @@ html, body {
 
 body ::-webkit-scrollbar {
   height: 16px;
-  overflow: visible;
+  overflow: scroll;
   width: 16px;
 }
 body ::-webkit-scrollbar-thumb {
@@ -42,7 +42,7 @@ body ::-webkit-scrollbar-corner {
 
 body {
   padding: 0 15px 15px 15px;
-  overflow: hidden;
+  overflow: scroll;
   background: no-repeat center center,
               -webkit-linear-gradient(bottom, #eee, rgba(255,255,255,0));
   font-family: 'Droid Sans', sans-serif;

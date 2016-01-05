@@ -12,7 +12,8 @@ var XmarkFolderNode = React.createClass({
   render: function() {
     var nodeData = this.props.nodeData;
     var indentLevel = nodeData.path.length - 1;
-    var iconLink = ( <img height="32" width="32" onClick={this.props.onClickFolder} src='/image/folder32.png'  /> );
+    var folderStyle = {cursor: "pointer"};
+    var iconLink = ( <img title="Click to toggle collapse" style={folderStyle} height="32" width="32" onClick={this.props.onClickFolder} src='/image/folder32.png'  /> );
     var name = getNodeName(nodeData);
     var leftPx = indentLevel * 32;
     var divStyle = {marginLeft: leftPx};

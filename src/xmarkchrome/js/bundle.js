@@ -22595,7 +22595,8 @@
 	  render: function render() {
 	    var nodeData = this.props.nodeData;
 	    var indentLevel = nodeData.path.length - 1;
-	    var iconLink = _react2.default.createElement('img', { height: '32', width: '32', onClick: this.props.onClickFolder, src: '/image/folder32.png' });
+	    var folderStyle = { cursor: "pointer" };
+	    var iconLink = _react2.default.createElement('img', { title: 'Click to toggle collapse', style: folderStyle, height: '32', width: '32', onClick: this.props.onClickFolder, src: '/image/folder32.png' });
 	    var name = (0, _util.getNodeName)(nodeData);
 	    var leftPx = indentLevel * 32;
 	    var divStyle = { marginLeft: leftPx };
