@@ -96,7 +96,14 @@
 	var gotInitialState = function gotInitialState() {
 	  var store = createStoreWithMiddleware(_reducers2.default, initialState);
 	
-	  var rootElement = document.getElementById('xmark');
+	  var tabElement = document.getElementById('xmarkTab');
+	  var popupElement = document.getElementById('xmark');
+	  var rootElement;
+	  if (tabElement != null) {
+	    rootElement = tabElement;
+	  } else {
+	    rootElement = popupElement;
+	  }
 	
 	  _reactDom2.default.render(_react2.default.createElement(
 	    _reactRedux.Provider,
@@ -22746,6 +22753,12 @@
 	    return {};
 	  },
 	
+	  _openMeInTab: function _openMeInTab() {
+	    chrome.tabs.create({ 'url': chrome.extension.getURL('xmark.html') }, function (tab) {
+	      // Tab opened.
+	    });
+	  },
+	
 	  _authorized: function _authorized() {
 	    return this.props.accessToken != null;
 	  },
@@ -22880,12 +22893,20 @@
 	      flexWrap: "wrap",
 	      alignItems: "baseline"
 	    };
+	    var isTab = document.getElementById("xmarkTab") != null;
+	    var openTabButton;
+	    if (isTab) openTabButton = _react2.default.createElement('span', null);else openTabButton = _react2.default.createElement(
+	      'button',
+	      { className: 'btn', onClick: thisXmarkApp._openMeInTab },
+	      'Open in tab'
+	    );
 	    return _react2.default.createElement(
 	      'div',
 	      null,
 	      _react2.default.createElement(
 	        'div',
 	        { style: topDivStyle },
+	        openTabButton,
 	        _react2.default.createElement(
 	          'button',
 	          { className: 'btn', onClick: thisXmarkApp._toggleAuth },

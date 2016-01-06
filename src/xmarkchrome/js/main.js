@@ -21,7 +21,15 @@ var initialState = {auth:{accessToken: null}
 var gotInitialState = function() {
     var store = createStoreWithMiddleware(xmarkReducer, initialState)
 
-    var rootElement = document.getElementById('xmark')
+    var tabElement = document.getElementById('xmarkTab')
+    var popupElement = document.getElementById('xmark')
+    var rootElement;
+    if (tabElement != null) {
+      rootElement = tabElement;
+    }
+    else {
+      rootElement = popupElement;
+    }
 
     ReactDOM.render(
       <Provider store={store}>

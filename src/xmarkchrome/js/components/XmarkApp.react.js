@@ -100,6 +100,12 @@ var XmarkApp = React.createClass({
     return {};
   },
 
+  _openMeInTab: function() {
+    chrome.tabs.create({'url': chrome.extension.getURL('xmark.html')}, function(tab) {
+      // Tab opened.
+    })
+  },
+
   _authorized: function() {
     return this.props.accessToken != null;
   },
@@ -237,9 +243,20 @@ var XmarkApp = React.createClass({
       flexWrap: "wrap",
       alignItems: "baseline"
     };
+    var isTab = (document.getElementById("xmarkTab") != null);
+    var openTabButton;
+    if (isTab)
+      openTabButton = (
+        <span />
+      );
+    else
+      openTabButton = (
+          <button className="btn" onClick={thisXmarkApp._openMeInTab}>Open in tab</button>
+      );
     return (
       <div>
         <div style={topDivStyle} >
+          {openTabButton}
           <button className="btn" onClick={thisXmarkApp._toggleAuth}>{authorizeLabel}</button>
           <button className="btn" onClick={thisXmarkApp._addBookmark}>Add Bookmark</button> 
           url: <input type="text" ref={addUrlInput => this._addUrlInput = addUrlInput} onChange={e => thisXmarkApp.setState({activeTabUrl: e.target.value})} value={addUrl}></input>
