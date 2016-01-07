@@ -1,4 +1,3 @@
-import '../../css/bootstrap.css'
 import React from 'react'
 import { List, Set, fromJS, is } from 'immutable'
 import { connect } from 'react-redux'
@@ -7,6 +6,7 @@ import {requestAuth, revokeAuth, receiveBookmarksBlob, addBookmark,
   toggleCollapse } from '../actions.js'
 import { fetchBookmarks } from '../gDocs.js'
 import { times, parseBookmarks, getNodeName, bookmarksToTreeNodes } from '../util.js'
+import { Row, Col, Grid, ButtonToolbar, Button, Input } from 'react-bootstrap'
 
 var XmarkFolderNode = React.createClass({
   render: function() {
@@ -51,8 +51,7 @@ var XmarkNode = React.createClass({
     else
         iconLink = ( <img height="32" width="32" src="/image/blank32.png" /> );
     var inEditing = this.props.inEditing;
-    var item1Style = {order:1};
-    var item2Style = {order:2};
+    var item1Style = {order:1}; var item2Style = {order:2};
     if (!inEditing)
       return (
         <div>
@@ -62,8 +61,12 @@ var XmarkNode = React.createClass({
            </div>
            <div style={item2Style}>
              <img height="32" width="32" src='/image/blank32.png'  />
-             <button onClick={e => xmarkNodeThis.props.beginEdit(url)}>Edit</button>
-             <button onClick={e => xmarkNodeThis.props.deleteMe(url)}>X</button>
+             <div className="btn-group btn-group-xs">
+               <Button bsSize="small" onClick={e => xmarkNodeThis.props.beginEdit(url)}>Edit</Button>
+             </div> 
+             <div className="btn-group btn-group-xs">
+               <Button bsSize="small" onClick={e => xmarkNodeThis.props.deleteMe(url)}>X</Button>
+             </div> 
            </div>
         </div>
         </div>
@@ -80,9 +83,15 @@ var XmarkNode = React.createClass({
            </div>
            <div>
               <img height="32" width="32" src='/image/blank32.png'  />
-              <button onClick={e => xmarkNodeThis.props.doneEdit(xmarkNodeThis._urlInput.value, xmarkNodeThis._nameInput.value, xmarkNodeThis._pathInput.value)}>Save</button>
-             <button onClick={e => xmarkNodeThis.props.cancelEdit()}>Cancel</button>
-             <button onClick={e => xmarkNodeThis.props.deleteMe(url)}>X</button>
+             <div className="btn-group btn-group-xs">
+              <Button bsSize="small" onClick={e => xmarkNodeThis.props.doneEdit(xmarkNodeThis._urlInput.value, xmarkNodeThis._nameInput.value, xmarkNodeThis._pathInput.value)}>Save</Button>
+             </div> 
+             <div className="btn-group btn-group-xs">
+             <Button bsSize="small" onClick={e => xmarkNodeThis.props.cancelEdit()}>Cancel</Button>
+             </div> 
+             <div className="btn-group btn-group-xs">
+             <Button bsSize="small" onClick={e => xmarkNodeThis.props.deleteMe(url)}>X</Button>
+             </div>
            </div>
         </div>
         <div style={newInputsDivStyle} >
@@ -238,11 +247,6 @@ var XmarkApp = React.createClass({
       if (!addTitle)
         addTitle = '';
     }
-    var topDivStyle = {
-      display: "flex",
-      flexWrap: "wrap",
-      alignItems: "baseline"
-    };
     var isTab = (document.getElementById("xmarkTab") != null);
     var openTabButton;
     if (isTab)
@@ -251,19 +255,35 @@ var XmarkApp = React.createClass({
       );
     else
       openTabButton = (
-          <button className="btn" onClick={thisXmarkApp._openMeInTab}>Open in tab</button>
+          <Button bsSize="small" onClick={thisXmarkApp._openMeInTab}>Open in tab</Button>
       );
     return (
       <div>
-        <div style={topDivStyle} >
-          {openTabButton}
-          <button className="btn" onClick={thisXmarkApp._toggleAuth}>{authorizeLabel}</button>
-          <button className="btn" onClick={thisXmarkApp._addBookmark}>Add Bookmark</button> 
-          url: <input type="text" ref={addUrlInput => this._addUrlInput = addUrlInput} onChange={e => thisXmarkApp.setState({activeTabUrl: e.target.value})} value={addUrl}></input>
-          title: <input type="text" ref={addTitleInput => this._addTitleInput = addTitleInput} onChange={e => thisXmarkApp.setState({activeTabTitle: e.target.value})} value={addTitle}></input>
-          to path (delimited by '/'): <input type="text" ref={addPathInput => this._addPathInput = addPathInput} onChange={e => thisXmarkApp.setState({addPathStr: e.target.value})} value={addPathStr} ></input>
-          <button className="btn" onClick={thisXmarkApp._close}>X</button>
-        </div>
+          <ButtonToolbar>
+            {openTabButton}
+            <Button bsSize="small" onClick={thisXmarkApp._toggleAuth}>{authorizeLabel}</Button>
+            <Button bsSize="small" onClick={thisXmarkApp._close}>Close</Button>
+          </ButtonToolbar>
+
+<Grid>
+  <Row>
+    <Col xs={12} sm={12} md={12}>
+          <Button bsSize="small" onClick={thisXmarkApp._addBookmark}>Add Bookmark</Button> 
+    </Col>
+  </Row>
+  <Row>
+    <Col xs={12} sm={6} md={4}>
+          <Input type="text" label="url" ref={addUrlInput => this._addUrlInput = addUrlInput} onChange={e => thisXmarkApp.setState({activeTabUrl: e.target.value})} value={addUrl}></Input>
+    </Col>
+    <Col xs={12} sm={6} md={4}>
+          <Input type="text" label="title" ref={addTitleInput => this._addTitleInput = addTitleInput} onChange={e => thisXmarkApp.setState({activeTabTitle: e.target.value})} value={addTitle}></Input>
+    </Col>
+    <Col xs={12} sm={6} md={4}>
+          <Input type="text" label="Path(delimited by /)" ref={addPathInput => this._addPathInput = addPathInput} onChange={e => thisXmarkApp.setState({addPathStr: e.target.value})} value={addPathStr} ></Input>
+    </Col>
+  </Row>
+</Grid>
+  <hr />
         <div>
             {bookmarksList}
         </div>
