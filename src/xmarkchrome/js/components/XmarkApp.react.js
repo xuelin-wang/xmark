@@ -1,7 +1,7 @@
 import React from 'react'
-import { List, Set, fromJS, is } from 'immutable'
+import { List, Set, Immutable, is } from 'immutable'
 import { connect } from 'react-redux'
-import {requestAuth, revokeAuth, receiveBookmarksBlob, addBookmark,
+import {requestAuth, revokeAuth, receiveBookmarks, addBookmark,
   startEditBookmark, completeEditBookmark, cancelEditBookmark, deleteBookmark,
   toggleCollapse } from '../actions.js'
 import { fetchBookmarks } from '../gDocs.js'
@@ -11,7 +11,7 @@ import { Row, Col, Grid, ButtonToolbar, Button, Input } from 'react-bootstrap'
 var XmarkFolderNode = React.createClass({
   render: function() {
     var nodeData = this.props.nodeData;
-    var indentLevel = nodeData.path.length - 1;
+    var indentLevel = nodeData.path.count() - 1;
     var folderStyle = {cursor: "pointer"};
     var iconLink = ( <img title="Click to toggle collapse" style={folderStyle} height="32" width="32" onClick={this.props.onClickFolder} src='/image/folder32.png'  /> );
     var name = getNodeName(nodeData);
@@ -36,7 +36,7 @@ var XmarkNode = React.createClass({
     var name = getNodeName(nodeData);
     var url = nodeData.url;
     var iconLink;
-    var indentLevel = nodeData.path.length;
+    var indentLevel = nodeData.path.count();
     var leftPx = indentLevel * 32;
     var divStyle = {
       marginLeft: leftPx,
@@ -123,7 +123,8 @@ var XmarkApp = React.createClass({
     var dispatch = this.props.dispatch;
     var bookmarksCallback = function(xmarksFileId, responseText) {
       console.log(responseText);
-      dispatch(receiveBookmarksBlob(xmarksFileId, responseText));
+      var bookmarks = parseBookmarks(responseText);
+      dispatch(receiveBookmarks(xmarksFileId, bookmarks));
     };
     fetchBookmarks(this.props.accessToken, bookmarksCallback);
   },
@@ -154,18 +155,15 @@ var XmarkApp = React.createClass({
     var xmarkAppThis = this;
     var dispatch = this.props.dispatch;
     var addPathStr = this._addPathInput.value;
+console.log("addPathStr = " + addPathStr);
+console.log("stat addPathStr = " + this.state.addPathStr);
     var addUrl = this._addUrlInput.value;
+console.log("addUrl = " + addUrl);
     var addTitle = this._addTitleInput.value;
-    var bookmarks = parseBookmarks(xmarkAppThis.props.bookmarksBlob);
-    var exists = false;
-    for (var index = 0; index < bookmarks.length; index++) {
-      var bookmark = bookmarks[index];
-      if (bookmark.url == addUrl) {
-        exists = true;
-        break;
-      }
-    }
-    if (exists)
+console.log("addTitle = " + addTitle);
+    var bookmarks = xmarkAppThis.props.bookmarks;
+    var bookmark = bookmarks.get(addUrl, null);
+    if (bookmark != null)
       return;
     dispatch(addBookmark(addUrl, addTitle, addPathStr));
   },
@@ -175,10 +173,8 @@ var XmarkApp = React.createClass({
 
   _isVisible: function(nodeData) {
     var collapsedPaths = this.props.collapsedPaths;
-    if (!collapsedPaths)
-      collapsedPaths = Set();
     var isLeaf = nodeData.url;
-    var path = fromJS(nodeData.path);
+    var path = nodeData.path;
     var visible = collapsedPaths.filter(tmpPath => {
       if (path.count() < tmpPath.count())
         return false;
@@ -198,8 +194,8 @@ var XmarkApp = React.createClass({
     var authorizeLabel = this._authorized() ? "Log Out Google" : "Log In Google";
     var thisXmarkApp = this;
     var dispatch = this.props.dispatch;
-    var bookmarksJson = parseBookmarks(this.props.bookmarksBlob);
-    var sortedTreeNodes = bookmarksToTreeNodes(bookmarksJson);
+    var bookmarksMap = this.props.bookmarks;
+    var sortedTreeNodes = bookmarksToTreeNodes(bookmarksMap);
     var editingUrl = this.props.editingUrl;
     var nodeId = 0;
     var bookmarksList = sortedTreeNodes.map(function(node) {
@@ -221,7 +217,7 @@ var XmarkApp = React.createClass({
       else {
         var onClickFolder = function() {
           thisXmarkApp.setState({addPathStr: null});
-          dispatch(toggleCollapse(fromJS(node.path)));
+          dispatch(toggleCollapse(node.path));
         };
         return (
           <XmarkFolderNode key={itemKey} nodeData={node} onClickFolder={onClickFolder} />
@@ -273,13 +269,13 @@ var XmarkApp = React.createClass({
   </Row>
   <Row>
     <Col xs={12} sm={6} md={4}>
-          <Input type="text" label="url" ref={addUrlInput => this._addUrlInput = addUrlInput} onChange={e => thisXmarkApp.setState({activeTabUrl: e.target.value})} value={addUrl}></Input>
+          url: <input type="text" ref={addUrlInput => this._addUrlInput = addUrlInput} onChange={e => thisXmarkApp.setState({activeTabUrl: e.target.value})} defaultValue={addUrl}></input>
     </Col>
     <Col xs={12} sm={6} md={4}>
-          <Input type="text" label="title" ref={addTitleInput => this._addTitleInput = addTitleInput} onChange={e => thisXmarkApp.setState({activeTabTitle: e.target.value})} value={addTitle}></Input>
+          title: <input type="text" ref={addTitleInput => this._addTitleInput = addTitleInput} onChange={e => thisXmarkApp.setState({activeTabTitle: e.target.value})} defaultValue={addTitle}></input>
     </Col>
     <Col xs={12} sm={6} md={4}>
-          <Input type="text" label="Path(delimited by /)" ref={addPathInput => this._addPathInput = addPathInput} onChange={e => thisXmarkApp.setState({addPathStr: e.target.value})} value={addPathStr} ></Input>
+          Path(delimited by /): <input type="text" ref={addPathInput => this._addPathInput = addPathInput} onChange={e => thisXmarkApp.setState({addPathStr: e.target.value})} defaultValue={addPathStr} ></input>
     </Col>
   </Row>
 </Grid>
@@ -296,7 +292,7 @@ function select(state) {
   return {
     accessToken: state.auth.accessToken,
     bookmarksFileId: state.auth.bookmarksFileId,
-    bookmarksBlob: state.auth.bookmarksBlob,
+    bookmarks: state.auth.bookmarks,
     editingUrl: state.auth.editingUrl,
     collapsedPaths: state.auth.collapsedPaths,
     clickedFolderPath: state.auth.clickedFolderPath,

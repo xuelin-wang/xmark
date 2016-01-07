@@ -1,3 +1,5 @@
+import { fromJS, List, Set, Map } from 'immutable'
+
 export function times(n, iterator) {
   var accum = Array(n);
   for (var i = 0; i < n; i++) accum[i] = iterator.call();
@@ -6,8 +8,26 @@ export function times(n, iterator) {
 
 export function parseBookmarks(bookmarksBlob) {
   if (bookmarksBlob == null || bookmarksBlob.trim().length == 0)
-    bookmarksBlob = '[]';
-  return JSON.parse(bookmarksBlob);
+    bookmarksBlob = '{"bookmarks":[], "collapsedPaths":[]}';
+  var jsObj = JSON.parse(bookmarksBlob);
+  var immuObj = fromJS(jsObj);
+  var bookmarks = immuObj.get("bookmarks", new List());
+  var collapsedPaths = immuObj.get("collapsedPaths", new List());
+  var bookmarksMap = new Map();
+  bookmarksMap = bookmarksMap.withMutations(theMap => {
+    bookmarks.forEach(function(bookmark, index, arr){
+      theMap.set(bookmark.get("url"), bookmark);
+    });
+  });
+
+  var collapsedPathsSet = new Set();
+  collapsedPathsSet = collapsedPathsSet.withMutations(theSet => {
+    collapsedPaths.forEach(function(val, index, arr){
+      theSet.add(val);
+    });
+  });
+
+  return [bookmarksMap, collapsedPathsSet];
 }
 
 export function getNodeName(node) {
@@ -15,7 +35,7 @@ export function getNodeName(node) {
   if (url)
     return node.name ? node.name : url;
   else
-    return node.path[node.path.length - 1];
+    return node.path.get(node.path.count() - 1);
 }
 
 function compareStr(str1, str2) {
@@ -29,14 +49,14 @@ export function comparePath(path1, path2)
   var check = comparePathElems(path1, path2);
   if (check != 0)
     return check;
-  return path1.length - path2.length;
+  return path1.count() - path2.count();
 }
 
 function comparePathElems(path1, path2)
 {
-  var minLen = Math.min(path1.length, path2.length);
+  var minLen = Math.min(path1.count(), path2.count());
   for (var index = 0; index < minLen; index++) {
-    var check = compareStr(path1[index], path2[index]);
+    var check = compareStr(path1.get(index), path2.get(index));
     if (check != 0)
       return check;
   }
@@ -50,7 +70,7 @@ function compareNode(node1, node2) {
   if (pathCheck != 0)
     return pathCheck;
 
-  var lenCheck = node1.path.length - node2.path.length;
+  var lenCheck = node1.path.count() - node2.path.count();
   var isLeaf1 = node1.url;
   var isLeaf2 = node2.url;
 
@@ -89,23 +109,20 @@ function findNode(node, sortedNodes) {
   return -sortedNodes.length - 1;
 }
 
-export function bookmarksToTreeNodes(bookmarks) {
+export function bookmarksToTreeNodes(bookmarksMap) {
   var sortedNodes = [];
-  bookmarks.map(function(bookmark) {
-    var path = bookmark.path;
+  bookmarksMap.forEach(function(bookmark) {
+    var path = bookmark.get("path");
     if (!path)
-      path = [];
-    if (path.length > 0) {
-      for (var index = path.length - 1; index >= 0; index--) {
-        var node = mkFolderNode(path.slice(0, index + 1));
-        var nodeIndex = findNode(node, sortedNodes);
-        if (nodeIndex >= 0) {
-          break;
-        }
+      path = new List();
+    path.forEach(function(name, index, arr) {
+      var node = mkFolderNode(path.slice(0, index + 1));
+      var nodeIndex = findNode(node, sortedNodes);
+      if (nodeIndex < 0) {
         sortedNodes.splice(-nodeIndex - 1, 0, node);
       }
-    }
-    var node = mkLeafNode(path, bookmark.url, bookmark.name);
+    });
+    var node = mkLeafNode(path, bookmark.get("url"), bookmark.get("name", null));
     var nodeIndex = findNode(node, sortedNodes);
     if (nodeIndex < 0) {
       sortedNodes.splice(-nodeIndex - 1, 0, node);

@@ -78,13 +78,13 @@ export function fetchBookmarks(accessToken, processBookmarksContent){
         return;
       }
       var exportCallback = function(content) {
-        var startIndex = content.indexOf("[{");
+        var startIndex = content.indexOf("{");
         var jsonContent;
         if (startIndex < 0)
             jsonContent = content;
         else {
-          var endIndex = content.lastIndexOf("}]");
-          jsonContent = content.substring(startIndex, endIndex + 2);
+          var endIndex = content.lastIndexOf("}");
+          jsonContent = content.substring(startIndex, endIndex + 1);
         }
         processBookmarksContent(xmarksFileId, jsonContent);
       }
@@ -124,8 +124,11 @@ function renameGdriveFile(accessToken, fileId, name, renameCallback) {
   queryGdrive(accessToken, apiUrl, "POST", true, headers, data, callback);
 }
 
-export function updateBookmarks(accessToken, fileId, bookmarks, callback) {
-  var blob = new Blob([JSON.stringify(bookmarks)], {type: 'text/plain'});
+export function updateBookmarks(accessToken, fileId, bookmarksMap, collapsedPathsSet, callback) {
+  var bookmarksJsObj = bookmarksMap.toList().toJS();
+  var collapsedPathsJsObj = collapsedPathsSet.toJS();
+  var jsObj = {bookmarks: bookmarksJsObj, collapsedPaths: collapsedPathsJsObj};
+  var blob = new Blob([JSON.stringify(jsObj)], {type: 'text/plain'});
   updateGdriveFile(accessToken, fileId, blob, callback);
 }
 

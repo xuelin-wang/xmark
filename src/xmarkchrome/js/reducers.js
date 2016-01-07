@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux'
-import { Set } from 'immutable'
+import { Set, Map } from 'immutable'
 import { START_REQUEST_AUTH, COMPLETE_REQUEST_AUTH,
   START_REVOKE_AUTH, COMPLETE_REVOKE_AUTH,
-  RECEIVE_BOOKMARKSBLOB, ADD_BOOKMARK, DELETE_BOOKMARK,
+  RECEIVE_BOOKMARKS, ADD_BOOKMARK, DELETE_BOOKMARK,
   START_EDIT_BOOKMARK, COMPLETE_EDIT_BOOKMARK, CANCEL_EDIT_BOOKMARK,
   TOGGLE_COLLAPSE } from './actions.js'
 import { comparePath, parseBookmarks } from './util.js'
@@ -30,24 +30,24 @@ function auth(state = initialState, action) {
         accessToken: null,
         startRevokeAuth: false,
         bookmarksFileId: null,
-        bookmarksBlob: null
+        bookmarks: null
       }
-    case RECEIVE_BOOKMARKSBLOB:
+    case RECEIVE_BOOKMARKS:
       return {
         ...state,
         accessToken: action.accessToken,
         bookmarksFileId: action.bookmarksFileId,
-        bookmarksBlob: action.bookmarksBlob
+        bookmarks: action.bookmarks,
+        collapsedPaths: action.collapsedPaths
       }
     case ADD_BOOKMARK:
-      var bookmarksBlob = state.bookmarksBlob;
-      var bookmarks = parseBookmarks(bookmarksBlob);
-      var newBookmark = {"name": action.name, "url": action.url, "path": action.path};
-      bookmarks.push(newBookmark);
-      updateBookmarks(state.accessToken, state.bookmarksFileId, bookmarks, null);
+      var bookmarks = state.bookmarks;
+      var newBookmark = new Map({"name": action.name, "url": action.url, "path": action.path});
+      var newBookmarks = bookmarks.set(action.url, newBookmark);
+      updateBookmarks(state.accessToken, state.bookmarksFileId, newBookmarks, state.collapsedPaths, null);
       return {
         ...state,
-        bookmarksBlob: JSON.stringify(bookmarks)
+        bookmarks: newBookmarks
       }
     case START_EDIT_BOOKMARK:
       return {
@@ -60,47 +60,37 @@ function auth(state = initialState, action) {
         editingUrl: null
       }
     case COMPLETE_EDIT_BOOKMARK:
-      var bookmarksBlob = state.bookmarksBlob;
-      var bookmarks = parseBookmarks(bookmarksBlob);
+      var bookmarks = state.bookmarks;
       var oldUrl = action.oldUrl;
-      bookmarks.forEach(function(bookmark, index) {
-        if (bookmark.url == oldUrl) {
-          bookmark.url = action.url;
-          bookmark.name = action.name;
-          bookmark.path = action.path;
-        }
-      });
-      updateBookmarks(state.accessToken, state.bookmarksFileId, bookmarks, null);
+      var newBookmarks = bookmarks.delete(oldUrl);
+      var newBookmark = new Map({url: action.url, name: action.name, path: action.path});
+      newBookmarks = newBookmarks.set(action.url, newBookmark);
+      updateBookmarks(state.accessToken, state.bookmarksFileId, newBookmarks, state.collapsedPaths, null);
       return {
         ...state,
         editingUrl: null,
-        bookmarksBlob: JSON.stringify(bookmarks)
+        bookmarks: newBookmarks
       }
     case DELETE_BOOKMARK:
-      var bookmarksBlob = state.bookmarksBlob;
-      var bookmarks = parseBookmarks(bookmarksBlob);
-      var url = action.url;
-      bookmarks.forEach(function(bookmark, index) {
-        if (bookmark.url == url) {
-          bookmarks.splice(index, 1);
-        }
-      });
-      updateBookmarks(state.accessToken, state.bookmarksFileId, bookmarks, null);
+      var bookmarks = state.bookmarks;
+      var newBookmarks = bookmarks.delete(action.url);
+      updateBookmarks(state.accessToken, state.bookmarksFileId, newBookmarks, state.collapsedPaths, null);
       return {
         ...state,
-        bookmarksBlob: JSON.stringify(bookmarks)
+        bookmarks: newBookmarks
       }
     case TOGGLE_COLLAPSE:
       var collapsedPaths = state.collapsedPaths;
-      if (!collapsedPaths)
-        collapsedPaths = Set();
       var path = action.folderPath;
       var newCollapsedPaths;
-      if (collapsedPaths.contains(path))
+      if (collapsedPaths.contains(path)) {
         newCollapsedPaths = collapsedPaths.delete(path);
+      }
       else {
         newCollapsedPaths = collapsedPaths.add(path);
       }
+
+      updateBookmarks(state.accessToken, state.bookmarksFileId, state.bookmarks, newCollapsedPaths, null);
         
       return {
         ...state,

@@ -81,6 +81,8 @@
 	
 	var _actions2 = _interopRequireDefault(_actions);
 	
+	var _util = __webpack_require__(/*! ./util.js */ 182);
+	
 	var _gDocs = __webpack_require__(/*! ./gDocs.js */ 183);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -118,7 +120,11 @@
 	    if (token) {
 	      var bookmarksCallback = function bookmarksCallback(xmarksFileId, responseText) {
 	        initialState.auth.bookmarksFileId = xmarksFileId;
-	        initialState.auth.bookmarksBlob = responseText;
+	        var parsedObj = (0, _util.parseBookmarks)(responseText);
+	        var bookmarksMap = parsedObj[0];
+	        var collapsedPathsSet = parsedObj[1];
+	        initialState.auth.bookmarks = bookmarksMap;
+	        initialState.auth.collapsedPaths = collapsedPathsSet;
 	        chrome.tabs.query({ "active": true, "lastFocusedWindow": true }, function (tabs) {
 	          if (tabs.length != 0 && tabs[0]) {
 	            var activeTab = tabs[0];
@@ -21789,22 +21795,22 @@
 	        accessToken: null,
 	        startRevokeAuth: false,
 	        bookmarksFileId: null,
-	        bookmarksBlob: null
+	        bookmarks: null
 	      });
-	    case _actions.RECEIVE_BOOKMARKSBLOB:
+	    case _actions.RECEIVE_BOOKMARKS:
 	      return _extends({}, state, {
 	        accessToken: action.accessToken,
 	        bookmarksFileId: action.bookmarksFileId,
-	        bookmarksBlob: action.bookmarksBlob
+	        bookmarks: action.bookmarks,
+	        collapsedPaths: action.collapsedPaths
 	      });
 	    case _actions.ADD_BOOKMARK:
-	      var bookmarksBlob = state.bookmarksBlob;
-	      var bookmarks = (0, _util.parseBookmarks)(bookmarksBlob);
-	      var newBookmark = { "name": action.name, "url": action.url, "path": action.path };
-	      bookmarks.push(newBookmark);
-	      (0, _gDocs.updateBookmarks)(state.accessToken, state.bookmarksFileId, bookmarks, null);
+	      var bookmarks = state.bookmarks;
+	      var newBookmark = new _immutable.Map({ "name": action.name, "url": action.url, "path": action.path });
+	      var newBookmarks = bookmarks.set(action.url, newBookmark);
+	      (0, _gDocs.updateBookmarks)(state.accessToken, state.bookmarksFileId, newBookmarks, state.collapsedPaths, null);
 	      return _extends({}, state, {
-	        bookmarksBlob: JSON.stringify(bookmarks)
+	        bookmarks: newBookmarks
 	      });
 	    case _actions.START_EDIT_BOOKMARK:
 	      return _extends({}, state, {
@@ -21815,42 +21821,34 @@
 	        editingUrl: null
 	      });
 	    case _actions.COMPLETE_EDIT_BOOKMARK:
-	      var bookmarksBlob = state.bookmarksBlob;
-	      var bookmarks = (0, _util.parseBookmarks)(bookmarksBlob);
+	      var bookmarks = state.bookmarks;
 	      var oldUrl = action.oldUrl;
-	      bookmarks.forEach(function (bookmark, index) {
-	        if (bookmark.url == oldUrl) {
-	          bookmark.url = action.url;
-	          bookmark.name = action.name;
-	          bookmark.path = action.path;
-	        }
-	      });
-	      (0, _gDocs.updateBookmarks)(state.accessToken, state.bookmarksFileId, bookmarks, null);
+	      var newBookmarks = bookmarks.delete(oldUrl);
+	      var newBookmark = new _immutable.Map({ url: action.url, name: action.name, path: action.path });
+	      newBookmarks = newBookmarks.set(action.url, newBookmark);
+	      (0, _gDocs.updateBookmarks)(state.accessToken, state.bookmarksFileId, newBookmarks, state.collapsedPaths, null);
 	      return _extends({}, state, {
 	        editingUrl: null,
-	        bookmarksBlob: JSON.stringify(bookmarks)
+	        bookmarks: newBookmarks
 	      });
 	    case _actions.DELETE_BOOKMARK:
-	      var bookmarksBlob = state.bookmarksBlob;
-	      var bookmarks = (0, _util.parseBookmarks)(bookmarksBlob);
-	      var url = action.url;
-	      bookmarks.forEach(function (bookmark, index) {
-	        if (bookmark.url == url) {
-	          bookmarks.splice(index, 1);
-	        }
-	      });
-	      (0, _gDocs.updateBookmarks)(state.accessToken, state.bookmarksFileId, bookmarks, null);
+	      var bookmarks = state.bookmarks;
+	      var newBookmarks = bookmarks.delete(action.url);
+	      (0, _gDocs.updateBookmarks)(state.accessToken, state.bookmarksFileId, newBookmarks, state.collapsedPaths, null);
 	      return _extends({}, state, {
-	        bookmarksBlob: JSON.stringify(bookmarks)
+	        bookmarks: newBookmarks
 	      });
 	    case _actions.TOGGLE_COLLAPSE:
 	      var collapsedPaths = state.collapsedPaths;
-	      if (!collapsedPaths) collapsedPaths = (0, _immutable.Set)();
 	      var path = action.folderPath;
 	      var newCollapsedPaths;
-	      if (collapsedPaths.contains(path)) newCollapsedPaths = collapsedPaths.delete(path);else {
+	      if (collapsedPaths.contains(path)) {
+	        newCollapsedPaths = collapsedPaths.delete(path);
+	      } else {
 	        newCollapsedPaths = collapsedPaths.add(path);
 	      }
+	
+	      (0, _gDocs.updateBookmarks)(state.accessToken, state.bookmarksFileId, state.bookmarks, newCollapsedPaths, null);
 	
 	      return _extends({}, state, {
 	        collapsedPaths: newCollapsedPaths,
@@ -22115,15 +22113,16 @@
 /*!***********************!*\
   !*** ./js/actions.js ***!
   \***********************/
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.TOGGLE_COLLAPSE = exports.DELETE_BOOKMARK = exports.CANCEL_EDIT_BOOKMARK = exports.COMPLETE_EDIT_BOOKMARK = exports.START_EDIT_BOOKMARK = exports.ADD_BOOKMARK = exports.RECEIVE_BOOKMARKS = exports.COMPLETE_REVOKE_AUTH = exports.START_REVOKE_AUTH = exports.COMPLETE_REQUEST_AUTH = exports.START_REQUEST_AUTH = undefined;
 	exports.requestAuth = requestAuth;
-	exports.receiveBookmarksBlob = receiveBookmarksBlob;
+	exports.receiveBookmarks = receiveBookmarks;
 	exports.addBookmark = addBookmark;
 	exports.revokeAuth = revokeAuth;
 	exports.startEditBookmark = startEditBookmark;
@@ -22131,11 +22130,14 @@
 	exports.completeEditBookmark = completeEditBookmark;
 	exports.deleteBookmark = deleteBookmark;
 	exports.toggleCollapse = toggleCollapse;
+	
+	var _immutable = __webpack_require__(/*! immutable */ 180);
+	
 	var START_REQUEST_AUTH = exports.START_REQUEST_AUTH = 'START_REQUEST_AUTH';
 	var COMPLETE_REQUEST_AUTH = exports.COMPLETE_REQUEST_AUTH = 'COMPLETE_REQUEST_AUTH';
 	var START_REVOKE_AUTH = exports.START_REVOKE_AUTH = 'START_REVOKE_AUTH';
 	var COMPLETE_REVOKE_AUTH = exports.COMPLETE_REVOKE_AUTH = 'COMPLETE_REVOKE_AUTH';
-	var RECEIVE_BOOKMARKSBLOB = exports.RECEIVE_BOOKMARKSBLOB = 'RECEIVE_BOOKMARKSBLOB';
+	var RECEIVE_BOOKMARKS = exports.RECEIVE_BOOKMARKS = 'RECEIVE_BOOKMARKS';
 	var ADD_BOOKMARK = exports.ADD_BOOKMARK = 'ADD_BOOKMARK';
 	var START_EDIT_BOOKMARK = exports.START_EDIT_BOOKMARK = 'START_EDIT_BOOKMARK';
 	var COMPLETE_EDIT_BOOKMARK = exports.COMPLETE_EDIT_BOOKMARK = 'COMPLETE_EDIT_BOOKMARK';
@@ -22172,23 +22174,26 @@
 	  };
 	}
 	
-	function receiveBookmarksBlob(xmarksFileId, bookmarksBlob) {
+	function receiveBookmarks(xmarksFileId, bookmarks, collapsedPaths) {
 	  return {
-	    type: RECEIVE_BOOKMARKSBLOB,
+	    type: RECEIVE_BOOKMARKS,
 	    bookmarksFileId: xmarksFileId,
-	    bookmarksBlob: bookmarksBlob
+	    bookmarks: bookmarks,
+	    collapsedPaths: collapsedPaths
 	  };
 	}
 	
 	function toPath(pathStr) {
 	  var names = pathStr.split('/');
-	  var nonEmptyNames = [];
-	  for (var index = 0; index < names.length; index++) {
-	    var name = names[index];
-	    if (name != null && name.trim().length > 0) {
-	      nonEmptyNames.push(name.trim());
+	  var nonEmptyNames = new _immutable.List();
+	  nonEmptyNames = nonEmptyNames.withMutations(function (arr) {
+	    for (var index = 0; index < names.length; index++) {
+	      var name = names[index];
+	      if (name != null && name.trim().length > 0) {
+	        arr.push(name.trim());
+	      }
 	    }
-	  }
+	  });
 	  return nonEmptyNames;
 	}
 	
@@ -22290,7 +22295,7 @@
 /*!********************!*\
   !*** ./js/util.js ***!
   \********************/
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -22302,6 +22307,9 @@
 	exports.getNodeName = getNodeName;
 	exports.comparePath = comparePath;
 	exports.bookmarksToTreeNodes = bookmarksToTreeNodes;
+	
+	var _immutable = __webpack_require__(/*! immutable */ 180);
+	
 	function times(n, iterator) {
 	  var accum = Array(n);
 	  for (var i = 0; i < n; i++) {
@@ -22310,13 +22318,31 @@
 	}
 	
 	function parseBookmarks(bookmarksBlob) {
-	  if (bookmarksBlob == null || bookmarksBlob.trim().length == 0) bookmarksBlob = '[]';
-	  return JSON.parse(bookmarksBlob);
+	  if (bookmarksBlob == null || bookmarksBlob.trim().length == 0) bookmarksBlob = '{"bookmarks":[], "collapsedPaths":[]}';
+	  var jsObj = JSON.parse(bookmarksBlob);
+	  var immuObj = (0, _immutable.fromJS)(jsObj);
+	  var bookmarks = immuObj.get("bookmarks", new _immutable.List());
+	  var collapsedPaths = immuObj.get("collapsedPaths", new _immutable.List());
+	  var bookmarksMap = new _immutable.Map();
+	  bookmarksMap = bookmarksMap.withMutations(function (theMap) {
+	    bookmarks.forEach(function (bookmark, index, arr) {
+	      theMap.set(bookmark.get("url"), bookmark);
+	    });
+	  });
+	
+	  var collapsedPathsSet = new _immutable.Set();
+	  collapsedPathsSet = collapsedPathsSet.withMutations(function (theSet) {
+	    collapsedPaths.forEach(function (val, index, arr) {
+	      theSet.add(val);
+	    });
+	  });
+	
+	  return [bookmarksMap, collapsedPathsSet];
 	}
 	
 	function getNodeName(node) {
 	  var url = node.url;
-	  if (url) return node.name ? node.name : url;else return node.path[node.path.length - 1];
+	  if (url) return node.name ? node.name : url;else return node.path.get(node.path.count() - 1);
 	}
 	
 	function compareStr(str1, str2) {
@@ -22328,13 +22354,13 @@
 	function comparePath(path1, path2) {
 	  var check = comparePathElems(path1, path2);
 	  if (check != 0) return check;
-	  return path1.length - path2.length;
+	  return path1.count() - path2.count();
 	}
 	
 	function comparePathElems(path1, path2) {
-	  var minLen = Math.min(path1.length, path2.length);
+	  var minLen = Math.min(path1.count(), path2.count());
 	  for (var index = 0; index < minLen; index++) {
-	    var check = compareStr(path1[index], path2[index]);
+	    var check = compareStr(path1.get(index), path2.get(index));
 	    if (check != 0) return check;
 	  }
 	  return 0;
@@ -22346,7 +22372,7 @@
 	  var pathCheck = comparePathElems(path1, path2);
 	  if (pathCheck != 0) return pathCheck;
 	
-	  var lenCheck = node1.path.length - node2.path.length;
+	  var lenCheck = node1.path.count() - node2.path.count();
 	  var isLeaf1 = node1.url;
 	  var isLeaf2 = node2.url;
 	
@@ -22381,22 +22407,19 @@
 	  return -sortedNodes.length - 1;
 	}
 	
-	function bookmarksToTreeNodes(bookmarks) {
+	function bookmarksToTreeNodes(bookmarksMap) {
 	  var sortedNodes = [];
-	  bookmarks.map(function (bookmark) {
-	    var path = bookmark.path;
-	    if (!path) path = [];
-	    if (path.length > 0) {
-	      for (var index = path.length - 1; index >= 0; index--) {
-	        var node = mkFolderNode(path.slice(0, index + 1));
-	        var nodeIndex = findNode(node, sortedNodes);
-	        if (nodeIndex >= 0) {
-	          break;
-	        }
+	  bookmarksMap.forEach(function (bookmark) {
+	    var path = bookmark.get("path");
+	    if (!path) path = new _immutable.List();
+	    path.forEach(function (name, index, arr) {
+	      var node = mkFolderNode(path.slice(0, index + 1));
+	      var nodeIndex = findNode(node, sortedNodes);
+	      if (nodeIndex < 0) {
 	        sortedNodes.splice(-nodeIndex - 1, 0, node);
 	      }
-	    }
-	    var node = mkLeafNode(path, bookmark.url, bookmark.name);
+	    });
+	    var node = mkLeafNode(path, bookmark.get("url"), bookmark.get("name", null));
 	    var nodeIndex = findNode(node, sortedNodes);
 	    if (nodeIndex < 0) {
 	      sortedNodes.splice(-nodeIndex - 1, 0, node);
@@ -22495,11 +22518,11 @@
 	      return;
 	    }
 	    var exportCallback = function exportCallback(content) {
-	      var startIndex = content.indexOf("[{");
+	      var startIndex = content.indexOf("{");
 	      var jsonContent;
 	      if (startIndex < 0) jsonContent = content;else {
-	        var endIndex = content.lastIndexOf("}]");
-	        jsonContent = content.substring(startIndex, endIndex + 2);
+	        var endIndex = content.lastIndexOf("}");
+	        jsonContent = content.substring(startIndex, endIndex + 1);
 	      }
 	      processBookmarksContent(xmarksFileId, jsonContent);
 	    };
@@ -22539,8 +22562,11 @@
 	  queryGdrive(accessToken, apiUrl, "POST", true, headers, data, callback);
 	}
 	
-	function updateBookmarks(accessToken, fileId, bookmarks, callback) {
-	  var blob = new Blob([JSON.stringify(bookmarks)], { type: 'text/plain' });
+	function updateBookmarks(accessToken, fileId, bookmarksMap, collapsedPathsSet, callback) {
+	  var bookmarksJsObj = bookmarksMap.toList().toJS();
+	  var collapsedPathsJsObj = collapsedPathsSet.toJS();
+	  var jsObj = { bookmarks: bookmarksJsObj, collapsedPaths: collapsedPathsJsObj };
+	  var blob = new Blob([JSON.stringify(jsObj)], { type: 'text/plain' });
 	  updateGdriveFile(accessToken, fileId, blob, callback);
 	}
 	
@@ -22601,7 +22627,7 @@
 	
 	  render: function render() {
 	    var nodeData = this.props.nodeData;
-	    var indentLevel = nodeData.path.length - 1;
+	    var indentLevel = nodeData.path.count() - 1;
 	    var folderStyle = { cursor: "pointer" };
 	    var iconLink = _react2.default.createElement('img', { title: 'Click to toggle collapse', style: folderStyle, height: '32', width: '32', onClick: this.props.onClickFolder, src: '/image/folder32.png' });
 	    var name = (0, _util.getNodeName)(nodeData);
@@ -22633,7 +22659,7 @@
 	    var name = (0, _util.getNodeName)(nodeData);
 	    var url = nodeData.url;
 	    var iconLink;
-	    var indentLevel = nodeData.path.length;
+	    var indentLevel = nodeData.path.count();
 	    var leftPx = indentLevel * 32;
 	    var divStyle = {
 	      marginLeft: leftPx,
@@ -22786,7 +22812,8 @@
 	    var dispatch = this.props.dispatch;
 	    var bookmarksCallback = function bookmarksCallback(xmarksFileId, responseText) {
 	      console.log(responseText);
-	      dispatch((0, _actions.receiveBookmarksBlob)(xmarksFileId, responseText));
+	      var bookmarks = (0, _util.parseBookmarks)(responseText);
+	      dispatch((0, _actions.receiveBookmarks)(xmarksFileId, bookmarks));
 	    };
 	    (0, _gDocs.fetchBookmarks)(this.props.accessToken, bookmarksCallback);
 	  },
@@ -22816,18 +22843,15 @@
 	    var xmarkAppThis = this;
 	    var dispatch = this.props.dispatch;
 	    var addPathStr = this._addPathInput.value;
+	    console.log("addPathStr = " + addPathStr);
+	    console.log("stat addPathStr = " + this.state.addPathStr);
 	    var addUrl = this._addUrlInput.value;
+	    console.log("addUrl = " + addUrl);
 	    var addTitle = this._addTitleInput.value;
-	    var bookmarks = (0, _util.parseBookmarks)(xmarkAppThis.props.bookmarksBlob);
-	    var exists = false;
-	    for (var index = 0; index < bookmarks.length; index++) {
-	      var bookmark = bookmarks[index];
-	      if (bookmark.url == addUrl) {
-	        exists = true;
-	        break;
-	      }
-	    }
-	    if (exists) return;
+	    console.log("addTitle = " + addTitle);
+	    var bookmarks = xmarkAppThis.props.bookmarks;
+	    var bookmark = bookmarks.get(addUrl, null);
+	    if (bookmark != null) return;
 	    dispatch((0, _actions.addBookmark)(addUrl, addTitle, addPathStr));
 	  },
 	
@@ -22835,9 +22859,8 @@
 	
 	  _isVisible: function _isVisible(nodeData) {
 	    var collapsedPaths = this.props.collapsedPaths;
-	    if (!collapsedPaths) collapsedPaths = (0, _immutable.Set)();
 	    var isLeaf = nodeData.url;
-	    var path = (0, _immutable.fromJS)(nodeData.path);
+	    var path = nodeData.path;
 	    var visible = collapsedPaths.filter(function (tmpPath) {
 	      if (path.count() < tmpPath.count()) return false;
 	      var check = (0, _immutable.is)(tmpPath, path.slice(0, tmpPath.count()));
@@ -22859,8 +22882,8 @@
 	    var authorizeLabel = this._authorized() ? "Log Out Google" : "Log In Google";
 	    var thisXmarkApp = this;
 	    var dispatch = this.props.dispatch;
-	    var bookmarksJson = (0, _util.parseBookmarks)(this.props.bookmarksBlob);
-	    var sortedTreeNodes = (0, _util.bookmarksToTreeNodes)(bookmarksJson);
+	    var bookmarksMap = this.props.bookmarks;
+	    var sortedTreeNodes = (0, _util.bookmarksToTreeNodes)(bookmarksMap);
 	    var editingUrl = this.props.editingUrl;
 	    var nodeId = 0;
 	    var bookmarksList = sortedTreeNodes.map(function (node) {
@@ -22886,7 +22909,7 @@
 	      } else {
 	        var onClickFolder = function onClickFolder() {
 	          thisXmarkApp.setState({ addPathStr: null });
-	          dispatch((0, _actions.toggleCollapse)((0, _immutable.fromJS)(node.path)));
+	          dispatch((0, _actions.toggleCollapse)(node.path));
 	        };
 	        return _react2.default.createElement(XmarkFolderNode, { key: itemKey, nodeData: node, onClickFolder: onClickFolder });
 	      }
@@ -22954,29 +22977,32 @@
 	          _react2.default.createElement(
 	            _reactBootstrap.Col,
 	            { xs: 12, sm: 6, md: 4 },
-	            _react2.default.createElement(_reactBootstrap.Input, { type: 'text', label: 'url', ref: function ref(addUrlInput) {
+	            'url: ',
+	            _react2.default.createElement('input', { type: 'text', ref: function ref(addUrlInput) {
 	                return _this._addUrlInput = addUrlInput;
 	              }, onChange: function onChange(e) {
 	                return thisXmarkApp.setState({ activeTabUrl: e.target.value });
-	              }, value: addUrl })
+	              }, defaultValue: addUrl })
 	          ),
 	          _react2.default.createElement(
 	            _reactBootstrap.Col,
 	            { xs: 12, sm: 6, md: 4 },
-	            _react2.default.createElement(_reactBootstrap.Input, { type: 'text', label: 'title', ref: function ref(addTitleInput) {
+	            'title: ',
+	            _react2.default.createElement('input', { type: 'text', ref: function ref(addTitleInput) {
 	                return _this._addTitleInput = addTitleInput;
 	              }, onChange: function onChange(e) {
 	                return thisXmarkApp.setState({ activeTabTitle: e.target.value });
-	              }, value: addTitle })
+	              }, defaultValue: addTitle })
 	          ),
 	          _react2.default.createElement(
 	            _reactBootstrap.Col,
 	            { xs: 12, sm: 6, md: 4 },
-	            _react2.default.createElement(_reactBootstrap.Input, { type: 'text', label: 'Path(delimited by /)', ref: function ref(addPathInput) {
+	            'Path(delimited by /): ',
+	            _react2.default.createElement('input', { type: 'text', ref: function ref(addPathInput) {
 	                return _this._addPathInput = addPathInput;
 	              }, onChange: function onChange(e) {
 	                return thisXmarkApp.setState({ addPathStr: e.target.value });
-	              }, value: addPathStr })
+	              }, defaultValue: addPathStr })
 	          )
 	        )
 	      ),
@@ -22994,7 +23020,7 @@
 	  return {
 	    accessToken: state.auth.accessToken,
 	    bookmarksFileId: state.auth.bookmarksFileId,
-	    bookmarksBlob: state.auth.bookmarksBlob,
+	    bookmarks: state.auth.bookmarks,
 	    editingUrl: state.auth.editingUrl,
 	    collapsedPaths: state.auth.collapsedPaths,
 	    clickedFolderPath: state.auth.clickedFolderPath,

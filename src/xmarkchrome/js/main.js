@@ -7,6 +7,7 @@ import { Provider } from 'react-redux'
 import xmarkReducer from './reducers'
 import XmarkApp from './components/XmarkApp.react.js';
 import completeRequestAuth from './actions.js';
+import { parseBookmarks } from './util.js'
 import { fetchBookmarks } from './gDocs.js';
 
 const loggerMiddleware = createLogger()
@@ -45,7 +46,11 @@ try {
     if (token) {
       var bookmarksCallback = function(xmarksFileId, responseText) {
         initialState.auth.bookmarksFileId = xmarksFileId;
-        initialState.auth.bookmarksBlob = responseText;
+        var parsedObj = parseBookmarks(responseText);
+        var bookmarksMap = parsedObj[0];
+        var collapsedPathsSet = parsedObj[1];
+        initialState.auth.bookmarks = bookmarksMap;
+        initialState.auth.collapsedPaths = collapsedPathsSet;
         chrome.tabs.query({"active": true, "lastFocusedWindow": true}, function (tabs) {
          if (tabs.length != 0 && tabs[0]) {
            var activeTab = tabs[0];

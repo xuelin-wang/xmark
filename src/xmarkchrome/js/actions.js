@@ -1,8 +1,10 @@
+import { List } from 'immutable'
+
 export const START_REQUEST_AUTH = 'START_REQUEST_AUTH'
 export const COMPLETE_REQUEST_AUTH = 'COMPLETE_REQUEST_AUTH'
 export const START_REVOKE_AUTH = 'START_REVOKE_AUTH'
 export const COMPLETE_REVOKE_AUTH = 'COMPLETE_REVOKE_AUTH'
-export const RECEIVE_BOOKMARKSBLOB = 'RECEIVE_BOOKMARKSBLOB'
+export const RECEIVE_BOOKMARKS = 'RECEIVE_BOOKMARKS'
 export const ADD_BOOKMARK = 'ADD_BOOKMARK'
 export const START_EDIT_BOOKMARK = 'START_EDIT_BOOKMARK'
 export const COMPLETE_EDIT_BOOKMARK = 'COMPLETE_EDIT_BOOKMARK'
@@ -39,23 +41,26 @@ function completeRequestAuth(accessToken) {
   };
 }
 
-export function receiveBookmarksBlob(xmarksFileId, bookmarksBlob) {
+export function receiveBookmarks(xmarksFileId, bookmarks, collapsedPaths) {
   return {
-    type: RECEIVE_BOOKMARKSBLOB,
+    type: RECEIVE_BOOKMARKS,
     bookmarksFileId: xmarksFileId,
-    bookmarksBlob: bookmarksBlob
+    bookmarks: bookmarks,
+    collapsedPaths: collapsedPaths
   };
 }
 
 function toPath(pathStr) {
   var names = pathStr.split('/')
-  var nonEmptyNames = [];
-  for (var index = 0; index < names.length; index++) {
-    var name = names[index];
-    if (name != null && name.trim().length > 0) {
-      nonEmptyNames.push(name.trim());
+  var nonEmptyNames = new List();
+  nonEmptyNames = nonEmptyNames.withMutations(arr => {
+    for (var index = 0; index < names.length; index++) {
+      var name = names[index];
+      if (name != null && name.trim().length > 0) {
+        arr.push(name.trim());
+      }
     }
-  }
+  });
   return nonEmptyNames;
 }
 
